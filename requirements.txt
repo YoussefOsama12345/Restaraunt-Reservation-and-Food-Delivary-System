@@ -1,0 +1,44 @@
+
+# ---------------------------------- #
+# ---------- Ui Framework ---------- #
+# ---------------------------------- #
+
+flet==0.25.0        # A fast and interactive UI framework for building desktop, web, and mobile apps with Python.  
+
+# ----------------------------------- #
+# ------- backend & hashing --------- #
+# ----------------------------------- # 
+
+sqlalchemy==2.0.25  # A SQL toolkit and ORM for managing relational databases.  
+bcrypt==4.1.2       # Library for hashing and verifying passwords securely.  
+passlib==1.7.4      # Comprehensive password hashing framework supporting multiple algorithms.   
+
+# ----------------------------------- #
+# ----- printing & pdf generator----- #
+# ----------------------------------- #
+
+reportlab==4.0.9    # Library for generating PDFs dynamically.  
+
+
+# ----------------------------------- #
+# ------- testing and debugging ----- #
+# ----------------------------------- #
+
+pytest==8.1.1       # Framework for writing and executing unit tests in Python.  
+pytest-flet==0.1.2  # Plugin for testing Flet applications with pytest.  
+pyautogui==0.9.54   # Automates GUI interactions (mouse, keyboard control, etc.).    
+openpyxl==3.1.2     # Library for reading and writing Excel files (XLSX).  
+
+# ----------------------------------- #
+# ----- linting and formatting ------ #
+# ----------------------------------- #
+
+black==3.12.8        # Automatic code formatting to PEP 8 standards.
+isort==5.13.2        # Sorting and organizing Python imports.
+autopep8==2.3.2      # Auto-format Python code to comply with PEP 8 style guide.
+pylint==3.3.6        # Static code analysis to check for errors and enforce coding standards.
+flake8==7.1.2        # Linting tool that checks for style issues, errors, and code complexity.
+mypy==1.15.0         # Static type checking for Python code with type annotations.
+bandit==3.12.8       # Security analysis tool for finding vulnerabilities in Python code.
+radon==6.0.1         # Analyzes code complexity and maintainability.
+python-dotenv==1.0.1 # loads environment variables from a .env file into the Python environment.
