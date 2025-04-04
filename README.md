@@ -8,15 +8,15 @@ A desktop-based Restaurant Management System developed using Python, SQLite3, an
 
 ## 🚀 Features
 
-• **Home Dashboard** – Overview of restaurant activity and quick navigation.
-• **Order Management** – Take, update, and delete customer orders with ease.
-• **Billing System** – Automatically generate and print invoices using ReportLab.
-• **Menu Management** – Add, update, and remove items from the food and beverage menu.
-• **Inventory Tracking** – Monitor stock levels of ingredients and supplies.
-• **Staff Management** – Manage staff details, roles, and work schedules.
-• **Table Allocation** – Track available and occupied tables in real-time.
-• **Expense Monitoring** – Record and manage daily operational expenses.
-• **Reports** – Generate detailed reports for sales, inventory, and staff attendance.
+* **Home Dashboard** – Overview of restaurant activity and quick navigation.
+* **Order Management** – Take, update, and delete customer orders with ease.
+* **Billing System** – Automatically generate and print invoices using ReportLab.
+* **Menu Management** – Add, update, and remove items from the food and beverage menu.
+* **Inventory Tracking** – Monitor stock levels of ingredients and supplies.
+* **Staff Management** – Manage staff details, roles, and work schedules.
+* **Table Allocation** – Track available and occupied tables in real-time.
+* **Expense Monitoring** – Record and manage daily operational expenses.
+* **Reports** – Generate detailed reports for sales, inventory, and staff attendance.
 
 
 
