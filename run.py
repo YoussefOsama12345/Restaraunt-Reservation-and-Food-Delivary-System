@@ -1,7 +1,6 @@
 
 import flet as ft
-from gui.pages.auth.Login import main
-
+from views.pages.auth.Login import main
 
 
 if __name__ == "__main__":
