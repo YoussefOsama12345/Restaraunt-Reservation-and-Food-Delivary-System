@@ -69,24 +69,27 @@ python run.py
 
 ```
 rms/
-├── assets/                # Static assets like icons, images, logos
-├── controllers/           # Handles business logic; connects models with views
-├── database/              # DB scripts and schema initialization
-├── docs/                  # Project documentation, architecture diagrams
-├── gui/                   # GUI components if using Flet
-├── logs/                  # Log files for debugging and monitoring
-├── models/                # Database models/entities
-├── reports/               # PDF reports, receipts, or print templates
-├── scripts/               # Automation scripts (e.g., backups, seeds)
-├── tests/                 # Unit and integration tests
-├── ui/                    # UI layout and theming
-├── utils/                 # Helper functions and utilities
-├── .env                   # Environment variables (e.g., DB_PATH, API_KEYS)
-├── CHANGELOG.md           # Tracks changes and version history
-├── LICENSE                # License file (Apache 2.0)
-├── requirements.txt       # Python dependencies
-├── README.md              # Project overview, setup, and usage
-└── run.py                 # Application entry point
+├── assets/                # Static files like icons, images, and logos used in the UI
+├── controllers/           # Business logic and event handling; connects models with views
+├── database/              # Database connection setup, schema definitions, and init scripts
+├── docs/                  # Project documentation, system architecture, and diagrams
+├── views/                 # Visual layout components rendered using Flet
+├── logs/                  # Application logs for error tracking and debugging
+├── models/                # ORM models (e.g., SQLAlchemy classes) representing DB tables
+├── reports/               # PDF templates and generated reports using ReportLab
+├── scripts/               # Automation scripts (e.g., data backup, database seeding)
+├── tests/                 # Unit and integration tests to ensure code reliability
+├── ui/                    # UI definitions including theming, layout, and reusable widgets
+├── utils/                 # Helper functions and shared utility methods
+├── .env                   # Environment variables (e.g., DB paths, secrets); not committed
+├── CHANGELOG.md           # Document tracking all notable changes and version history
+├── CODE_OF_CONDUCT.md     # Guidelines for contributor behavior and community standards
+├── CONTRIBUTING.md        # Instructions and best practices for contributing to the project
+├── LICENSE                # Legal license of the project (e.g., Apache 2.0)
+├── requirements.txt       # Python package dependencies for the project
+├── README.md              # Main project overview, features, setup, and usage guide
+└── run.py                 # Main entry point to run the application
+
 ```
 
 ---
