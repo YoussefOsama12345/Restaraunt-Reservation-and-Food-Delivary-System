@@ -1,4 +1,4 @@
-# 🍽️ Restaurant Management System (RMS)
+# 🍽️ Restaurant Reservation & Food Delivary System (RMS)
 
 A desktop-based Restaurant Management System developed using Python, SQLite3, and Flet to streamline restaurant operations such as order processing, billing, inventory tracking, and staff management. This system is designed for single-user use and works offline, offering an efficient and user-friendly experience for restaurant administrators.
 
