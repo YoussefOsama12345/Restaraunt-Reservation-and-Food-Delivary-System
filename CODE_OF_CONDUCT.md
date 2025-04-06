@@ -1,4 +1,4 @@
-# 📜 Code of Conduct for RMS
+# 📜 Code of Conduct
 
 ## 👋 Our Commitment
 
