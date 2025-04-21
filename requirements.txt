@@ -1,0 +1,77 @@
+# ---------------------------------- #
+# -------- Web Framework ----------- #
+# ---------------------------------- #
+fastapi==0.115.6                 # Modern, fast web API framework
+uvicorn[standard]==0.29.0        # ASGI server for running FastAPI apps
+
+# ---------------------------------- #
+# -------- Database & ORM ---------- #
+# ---------------------------------- #
+sqlalchemy==2.0.29               # SQL ORM for database models and queries
+asyncpg==0.29.0                  # PostgreSQL driver for async DB connections
+psycopg2-binary==2.9.9           # PostgreSQL driver for sync DB connections
+alembic==1.13.1                  # Database migrations for SQLAlchemy
+
+# --------------------------------------------- #
+# --- Data Validation & Environment Settings -- #
+# --------------------------------------------- #
+pydantic==2.9.2                  # Data parsing & validation using Python type hints
+pydantic-settings==2.2.1         # Load and manage app settings via Pydantic
+
+# ---------------------------------- #
+# ------ Authentication & Security - #
+# ---------------------------------- #
+passlib[bcrypt]==1.7.4           # Secure password hashing (supports bcrypt, argon2, etc.)
+bcrypt==4.1.2                    # Bcrypt implementation for hashing passwords
+python-jose[cryptography]==3.3.0 # JWT encoding/decoding and verification
+python-multipart==0.0.9          # Handle multipart/form-data uploads
+PyJWT==2.8.0                     # JWT-based token creation and decoding
+
+# Firebase Authentication
+firebase-admin==6.5.0           # Firebase Admin SDK for verifying ID tokens
+google-auth==2.29.0             # Google Auth dependency for Firebase JWT handling
+
+# ---------------------------------- #
+# --------- Email & SMTP ----------- #
+# ---------------------------------- #
+python-dotenv==1.0.1             # Load environment variables from .env file
+email-validator==2.1.1           # Validate, format, and normalize email addresses
+jinja2==3.1.3                    # HTML templating engine (used for rendering emails)
+
+# ---------------------------------- #
+# ------------ Utilities ----------- #
+# ---------------------------------- #
+fastapi-utils==0.2.1             # Utilities for FastAPI: CBVs, pagination, etc.
+httpx==0.27.0                    # Async HTTP client for calling APIs
+requests==2.31.0                 # Sync HTTP client for calling external APIs
+loguru==0.7.2                    # Modern logging library
+python-slugify==8.0.4            # Slug generation from strings (used in URLs, filenames)
+ipython==8.24.0                  # Enhanced Python shell for debugging and development
+
+# ---------------------------------- #
+# ------ Linting & Formatting ------ #
+# ---------------------------------- #
+black==23.12.1                   # Opinionated Python code formatter
+isort==5.13.2                    # Sorts and organizes imports
+autopep8==2.3.2                  # Formats code to PEP8 style guide
+pylint==3.3.6                    # Static code analysis for Python
+flake8==7.1.2                    # Code style checker with plugin support
+mypy==1.15.0                     # Static type checker for Python
+bandit==1.7.7                    # Security linter for Python code
+radon==6.0.1                     # Code complexity and maintainability analyzer
+
+# ---------------------------------- #
+# ------- Optional Enhancements ---- #
+# ---------------------------------- #
+markdown==3.5.2                  # Render and manipulate markdown text
+itsdangerous==2.1.2              # Cryptographically sign data for tokens/links
+
+# ---------------------------------- #
+# ---------- Testing Tools --------- #
+# ---------------------------------- #
+pytest==8.3.5                    # Testing framework for Python
+pytest-cov==5.0.0                # Test coverage reporting
+httpx[http2]==0.27.0             # HTTP2 testing support (can be used in API load testing)
+
+click>=8.1.7
+typing-inspect>=0.9.0
