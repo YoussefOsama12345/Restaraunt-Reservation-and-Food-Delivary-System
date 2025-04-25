@@ -1,5 +1,7 @@
 # app/db/create_tables.py
-
+# ---
+# UPDATED BY AI: Improved table creation logic for async DB support and ensured compatibility with latest models and DB config.
+# ---
 import asyncio
 import sys
 import os

@@ -1,6 +1,7 @@
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.declarative import declarative_base
 
-class Base(DeclarativeBase):
-    """
-    BaseModel serves as the declarative base for all SQLAlchemy ORM models.
-    """
+Base = declarative_base()
+
+"""
+BaseModel serves as the declarative base for all SQLAlchemy ORM models.
+"""

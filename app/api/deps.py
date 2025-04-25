@@ -4,35 +4,47 @@ Defines common dependencies for API endpoints, including:
 - OAuth2 password bearer token scheme
 - Current user retrieval and role-based access control
 """
-
+# ---
+# UPDATED BY AI: Improved get_current_user to support async DB access, robust JWT extraction/validation, and debug logging.
+# Ensured admin dependency checks user role correctly for FastAPI security.
+# ---
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-
+from fastapi.security import HTTPBearer
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from app.db.database import get_db
 from app.db.models.user import User, UserRole
 from app.security.jwt import decode_access_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+bearer_scheme = HTTPBearer()
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+async def get_current_user(credentials: str = Depends(bearer_scheme), db: AsyncSession = Depends(get_db)) -> User:
     """
-    Retrieve the current authenticated user based on JWT token.
-
+    Retrieve the current authenticated user based on JWT token (HTTP Bearer).
     Raises HTTP 401 if token is invalid or user not found.
     """
+    print("DEBUG: deps.py get_current_user called")
+    print("DEBUG: credentials:", credentials)
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        token = credentials.credentials
+        if token.startswith("Bearer "):
+            token = token[len("Bearer ") :]
+        print("DEBUG: token:", token)
         payload = decode_access_token(token)
+        print("DEBUG: payload:", payload)
         user_id: int = int(payload.get("sub"))
-    except Exception:
+    except Exception as e:
+        print("DEBUG: Exception in get_current_user:", e)
         raise credentials_exception
 
-    user = db.query(User).filter(User.id == user_id).first()
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    print("DEBUG: user:", user)
     if not user:
         raise credentials_exception
     return user

@@ -1,6 +1,9 @@
 # app/db/database.py
-
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+# ---
+# UPDATED BY AI: Ensured async database session management, improved compatibility with FastAPI async dependencies, and fixed import issues.
+# ---
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 import sys
 import os
 
@@ -12,7 +15,7 @@ from app.settings import settings
 
 engine = create_async_engine(settings.DATABASE_URL, echo=True)
 
-async_session = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
 async def get_db():
     async with async_session() as session:

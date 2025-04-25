@@ -88,8 +88,6 @@ class User(Base):
         - payments: One-to-many with Payment
         - notifications: One-to-many with Notification
         - cart_items: One-to-many with CartItem
-        - delivery_tasks: One-to-many with DeliveryTask (as driver)
-        - customer_deliveries: DeliveryTasks created by the user (as customer)
         - assigned_deliveries: Orders assigned to the user as delivery person
     """
     __tablename__ = "users"
@@ -114,13 +112,12 @@ class User(Base):
     
     # Relationships
     addresses = relationship("Address", back_populates="user", cascade="all, delete-orphan")
-    orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
-    reservations = relationship("Reservation", back_populates="user", cascade="all, delete-orphan")
+    orders = relationship("Order", back_populates="user", cascade="all, delete-orphan", foreign_keys="Order.user_id")
+    assigned_deliveries = relationship("Order", foreign_keys="Order.delivery_person_id")
+    reservations = relationship("Reservation", back_populates="user", cascade="all, delete-orphan", foreign_keys="Reservation.user_id")
     reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
     support_tickets = relationship("SupportTicket", back_populates="user", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
-    delivery_tasks = relationship("DeliveryTask", back_populates="driver", cascade="all, delete-orphan")
-    customer_deliveries = relationship("DeliveryTask", foreign_keys="[DeliveryTask.customer_id]")
-    assigned_deliveries = relationship("Order", foreign_keys="[Order.delivery_person_id]")
+    # delivery_tasks = relationship("DeliveryTask", back_populates="driver", cascade="all, delete-orphan", foreign_keys="DeliveryTask.driver_id")  # REMOVED: No delivery_tasks property on User

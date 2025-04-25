@@ -72,7 +72,7 @@ class Order(Base):
     delivery_person_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     # Relationships
-    user = relationship("User", back_populates="orders")
+    user = relationship("User", back_populates="orders", foreign_keys=[user_id])
     delivery_address = relationship("Address", back_populates="orders")
     order_items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     payment = relationship("Payment", back_populates="order", uselist=False)

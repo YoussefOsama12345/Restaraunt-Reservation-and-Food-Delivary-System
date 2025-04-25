@@ -88,5 +88,7 @@ class DeliveryTask(Base):
     location_longitude = Column(Float, nullable=True)
 
     # Relationships
-    order = relationship("Order", back_populates="delivery_task")
-    driver = relationship("User", back_populates="delivery_tasks")
+    order = relationship("Order", back_populates="delivery_task", foreign_keys=[order_id])
+    driver = relationship("User", foreign_keys=[driver_id])
+    customer = relationship("User", foreign_keys=[customer_id])
+    # restaurant = relationship("Restaurant")  # DISABLED: No property 'restaurant' on DeliveryTask, and no such relationship needed

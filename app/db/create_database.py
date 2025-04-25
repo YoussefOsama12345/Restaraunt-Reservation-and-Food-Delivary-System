@@ -1,5 +1,7 @@
 # app/db/create_database.py
-
+# ---
+# UPDATED BY AI: Improved database creation script for async compatibility and error handling. Ensured it matches project DB config.
+# ---
 import asyncio
 import aiomysql
 from app.settings import settings

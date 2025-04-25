@@ -48,7 +48,6 @@ class Restaurant(Base):
         - menu_items: One-to-many relationship with MenuItem
         - reservations: One-to-many relationship with Reservation
         - reviews: One-to-many relationship with Review
-        - inventory_items: One-to-many with InventoryItem (with cascade)
         - orders: One-to-many relationship with Order
         - delivery_tasks: One-to-many with DeliveryTask
     """
@@ -75,6 +74,6 @@ class Restaurant(Base):
     menu_items = relationship("MenuItem", back_populates="restaurant")
     reservations = relationship("Reservation", back_populates="restaurant")
     reviews = relationship("Review", back_populates="restaurant")
-    inventory_items = relationship("InventoryItem", back_populates="restaurant", cascade="all, delete-orphan")
+    # inventory_items = relationship("InventoryItem", back_populates="restaurant", cascade="all, delete-orphan")  # DISABLED: No such model exists
     orders = relationship("Order", back_populates="restaurant")
-    delivery_tasks = relationship("DeliveryTask", back_populates="restaurant")
+    # delivery_tasks = relationship("DeliveryTask", back_populates="restaurant")  # DISABLED: No property 'restaurant' on DeliveryTask

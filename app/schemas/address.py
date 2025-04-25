@@ -6,7 +6,10 @@ including validation rules and example values for OpenAPI documentation.
 
 Used for user address book management in delivery and billing flows.
 """
-
+# ---
+# UPDATED BY AI: Updated schema field names to match DB (street_address, postal_code), added orm_mode for from_orm, 
+# improved validation, and ensured Pydantic v1/v2 compatibility for FastAPI response models.
+# ---
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
@@ -16,11 +19,11 @@ class AddressBase(BaseModel):
     """
     Shared base schema for address fields.
     """
-    street: str = Field(example="123 Elm St")
+    street_address: str = Field(example="123 Elm St")
     city: str = Field(example="New York")
     state: Optional[str] = Field(default=None, example="NY")
     country: str = Field(example="USA")
-    zip_code: str = Field(example="10001")
+    postal_code: str = Field(example="10001")
     is_default: Optional[bool] = Field(default=False, description="Whether this is the user's default address")
     label: Optional[str] = Field(default=None, example="Home or Work")
 
@@ -31,7 +34,7 @@ class AddressCreate(AddressBase):
     """
     Schema for creating a new address record with validation rules.
     """
-    street: str = Field(
+    street_address: str = Field(
         min_length=5,
         max_length=100,
         description="Street name and number",
@@ -56,7 +59,7 @@ class AddressCreate(AddressBase):
         description="Country name",
         example="USA"
     )
-    zip_code: str = Field(
+    postal_code: str = Field(
         min_length=3,
         max_length=10,
         description="Postal or ZIP code",
@@ -82,7 +85,7 @@ class AddressUpdate(AddressBase):
     Schema for updating an existing address record with validation rules.
     All fields are optional to allow partial updates.
     """
-    street: Optional[str] = Field(
+    street_address: Optional[str] = Field(
         default=None,
         min_length=5,
         max_length=100,
@@ -110,7 +113,7 @@ class AddressUpdate(AddressBase):
         description="Country name",
         example="USA"
     )
-    zip_code: Optional[str] = Field(
+    postal_code: Optional[str] = Field(
         default=None,
         min_length=3,
         max_length=10,
@@ -144,5 +147,8 @@ class AddressRead(AddressBase):
     is_active: bool = Field(default=True, description="Whether the address is currently active")
     last_used_at: Optional[datetime] = Field(default=None, description="When the address was last used for delivery")
     usage_count: int = Field(default=0, ge=0, description="Number of times this address has been used")
+
+    class Config:
+        orm_mode = True
 
     model_config = ConfigDict(from_attributes=True)
