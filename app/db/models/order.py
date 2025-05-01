@@ -78,5 +78,5 @@ class Order(Base):
     payment = relationship("Payment", back_populates="order", uselist=False)
     delivery_task = relationship("DeliveryTask", back_populates="order", uselist=False)
     restaurant = relationship("Restaurant", back_populates="orders")
-    delivery_person = relationship("User", foreign_keys=[delivery_person_id])
+    delivery_person = relationship("User", foreign_keys=[delivery_person_id], overlaps="assigned_deliveries")
     reviews = relationship("Review", back_populates="order")

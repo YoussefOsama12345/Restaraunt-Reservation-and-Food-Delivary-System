@@ -47,6 +47,7 @@ class OrderCreate(OrderBase):
         payment_method (str): The method of payment used for the order. Must be one of: credit_card, cash, online_payment.
         delivery_address_id (Optional[int]): The ID of the delivery address associated with the order.
         status (Optional[str]): The initial status of the order. Defaults to "pending".
+        restaurant_id (int): The ID of the restaurant fulfilling the order.
     """
     items: List[OrderItem] = Field(
         ...,
@@ -70,6 +71,11 @@ class OrderCreate(OrderBase):
         None,
         description="ID of the delivery address",
         ge=1,
+        example=1
+    )
+    restaurant_id: int = Field(
+        ..., 
+        description="ID of the restaurant fulfilling the order",
         example=1
     )
     status: Optional[str] = Field(

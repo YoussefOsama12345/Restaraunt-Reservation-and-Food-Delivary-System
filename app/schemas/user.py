@@ -1,6 +1,12 @@
 from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from enum import Enum
+
+class UserRole(str, Enum):
+    CUSTOMER = "customer"
+    ADMIN = "admin"
+    DRIVER = "driver"
 
 class UserBase(BaseModel):
     """
@@ -35,6 +41,7 @@ class UserCreate(UserBase):
         phone_number (Optional[str]): Contact phone number
         is_active (Optional[bool]): Account activation status
         is_admin (Optional[bool]): Administrative privileges flag
+        role (Optional[UserRole]): User role (customer, admin, driver)
     """
     username: str = Field(
         ...,
@@ -78,6 +85,11 @@ class UserCreate(UserBase):
         False,
         description="Whether the user has administrative privileges",
         example=False
+    )
+    role: Optional[UserRole] = Field(
+        UserRole.CUSTOMER,
+        description="User role (customer, admin, driver)",
+        example="customer"
     )
 
     model_config = ConfigDict(from_attributes=True)
@@ -200,12 +212,12 @@ class UserRead(UserBase):
         example="+1234567890"
     )
     is_active: bool = Field(
-        True,
+        default=True,
         description="Whether the user account is currently active",
         example=True
     )
     is_admin: bool = Field(
-        False,
+        default=False,
         description="Whether the user has administrative privileges",
         example=False
     )

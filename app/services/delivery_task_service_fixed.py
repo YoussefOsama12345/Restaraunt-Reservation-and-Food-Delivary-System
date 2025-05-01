@@ -30,14 +30,11 @@ async def assign_delivery(db: AsyncSession, order_id: int, driver_id: int) -> di
     Role: Admin
     """
     try:
-        print(f"Attempting to assign order {order_id} to driver {driver_id}")
-        
         # Check if order exists
         order_result = await db.execute(select(Order).where(Order.id == order_id))
         order = order_result.scalar_one_or_none()
         if not order:
-            print(f"Order with ID {order_id} not found")
-            raise HTTPException(status_code=404, detail=f"Order with ID {order_id} not found")
+            raise HTTPException(status_code=404, detail="Order not found.")
             
         # Get delivery address in a separate query
         address_id = None
@@ -79,16 +76,10 @@ async def assign_delivery(db: AsyncSession, order_id: int, driver_id: int) -> di
                 print(f"Could not get address details: {str(e)}")
                 
         # Check if driver exists and is a driver
-        driver_result = await db.execute(select(User).where(User.id == driver_id))
+        driver_result = await db.execute(select(User).where(User.id == driver_id, User.role == "driver"))
         driver = driver_result.scalar_one_or_none()
         if not driver:
-            print(f"Driver with ID {driver_id} not found")
-            raise HTTPException(status_code=404, detail=f"Driver with ID {driver_id} not found")
-            
-        # Check if the user is a driver
-        if driver.role != "driver":
-            print(f"User with ID {driver_id} is not a driver, role: {driver.role}")
-            raise HTTPException(status_code=403, detail=f"User with ID {driver_id} is not a driver, role: {driver.role}")
+            raise HTTPException(status_code=404, detail="Driver not found or not a driver.")
             
         # Check if delivery task already exists for this order
         existing_result = await db.execute(select(DeliveryTask).where(DeliveryTask.order_id == order_id))
@@ -140,30 +131,20 @@ async def assign_delivery(db: AsyncSession, order_id: int, driver_id: int) -> di
             return task_dict
             
         # Create delivery task with safe address handling
-        print(f"Creating new delivery task for order {order_id} assigned to driver {driver_id}")
-        try:
-            delivery_task = DeliveryTask(
-                order_id=order_id,
-                driver_id=driver_id,
-                customer_id=order.user_id,
-                restaurant_id=order.restaurant_id,
-                delivery_address=delivery_address,
-                status=DeliveryStatus.ASSIGNED,
-                delivery_fee=4.99  # Example: could be dynamic
-                # Note: created_at and updated_at fields are not included
-                # as they don't exist in the database yet
-            )
-            print(f"Created delivery task object with order_id={order_id}, driver_id={driver_id}")
-            db.add(delivery_task)
-            print("Added delivery task to database session")
-            await db.commit()
-            print("Committed delivery task to database")
-            await db.refresh(delivery_task)
-            print(f"Refreshed delivery task, ID: {delivery_task.id}")
-        except Exception as e:
-            print(f"Error creating delivery task: {str(e)}")
-            await db.rollback()
-            raise HTTPException(status_code=500, detail=f"Failed to create delivery task: {str(e)}")
+        delivery_task = DeliveryTask(
+            order_id=order_id,
+            driver_id=driver_id,
+            customer_id=order.user_id,
+            restaurant_id=order.restaurant_id,
+            delivery_address=delivery_address,
+            status=DeliveryStatus.ASSIGNED,
+            delivery_fee=4.99  # Example: could be dynamic
+            # Note: created_at and updated_at fields are not included
+            # as they don't exist in the database yet
+        )
+        db.add(delivery_task)
+        await db.commit()
+        await db.refresh(delivery_task)
         
         # Convert to dictionary with proper datetime handling
         task_dict = {}
@@ -215,47 +196,22 @@ async def assign_delivery(db: AsyncSession, order_id: int, driver_id: int) -> di
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to assign delivery: {str(e)}")
 
-async def update_delivery_status(db: AsyncSession, task_id: int, status: str, driver_id: int, is_admin: bool = False) -> dict:
+async def update_delivery_status(db: AsyncSession, task_id: int, status: str, driver_id: int) -> dict:
     """
     Update the status of a delivery task.
     Role: Driver or Admin
     """
     try:
-        print(f"Attempting to update delivery task {task_id} with status {status} for driver {driver_id}, is_admin={is_admin}")
-        
-        # First, check if the task exists at all
-        task_exists_result = await db.execute(
-            select(DeliveryTask).where(DeliveryTask.id == task_id)
-        )
-        task_exists = task_exists_result.scalar_one_or_none()
-        
-        if not task_exists:
-            print(f"Delivery task {task_id} not found in the database")
-            raise HTTPException(status_code=404, detail=f"Delivery task {task_id} not found in the database")
-        
-        # If the user is an admin, they can update any delivery task
-        # If not, check if the task belongs to the driver
-        if not is_admin and task_exists.driver_id != driver_id:
-            print(f"Delivery task {task_id} exists but is assigned to driver {task_exists.driver_id}, not {driver_id}")
-            raise HTTPException(status_code=403, detail=f"Delivery task is assigned to driver {task_exists.driver_id}, not {driver_id}")
-        
-        # Get the task
-        if is_admin:
-            # Admin can access any task
-            task = task_exists
-            print(f"Admin accessing delivery task {task_id} assigned to driver {task.driver_id}")
-        else:
-            # Regular driver can only access their own tasks
-            task_result = await db.execute(
-                select(DeliveryTask).where(
-                    DeliveryTask.id == task_id,
-                    DeliveryTask.driver_id == driver_id
-                )
+        # Check if delivery task exists and belongs to the driver
+        task_result = await db.execute(
+            select(DeliveryTask).where(
+                DeliveryTask.id == task_id,
+                DeliveryTask.driver_id == driver_id
             )
-            task = task_result.scalar_one_or_none()
-            if not task:
-                print(f"Delivery task {task_id} not found or not assigned to driver {driver_id}")
-                raise HTTPException(status_code=404, detail="Delivery task not found or not assigned to this driver.")
+        )
+        task = task_result.scalar_one_or_none()
+        if not task:
+            raise HTTPException(status_code=404, detail="Delivery task not found or not assigned to this driver.")
             
         # Update status and related fields
         if status == DeliveryStatus.EN_ROUTE and not task.pickup_time:
@@ -299,47 +255,22 @@ async def update_delivery_status(db: AsyncSession, task_id: int, status: str, dr
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to update delivery status: {str(e)}")
 
-async def confirm_delivery_with_otp(db: AsyncSession, task_id: int, otp: str, driver_id: int, is_admin: bool = False) -> dict:
+async def confirm_delivery_with_otp(db: AsyncSession, task_id: int, otp: str, driver_id: int) -> dict:
     """
     Confirm the delivery completion using OTP verification.
     Role: Driver or Admin
     """
     try:
-        print(f"Attempting to confirm delivery task {task_id} with OTP for driver {driver_id}, is_admin={is_admin}")
-        
-        # First, check if the task exists at all
-        task_exists_result = await db.execute(
-            select(DeliveryTask).where(DeliveryTask.id == task_id)
-        )
-        task_exists = task_exists_result.scalar_one_or_none()
-        
-        if not task_exists:
-            print(f"Delivery task {task_id} not found in the database")
-            raise HTTPException(status_code=404, detail=f"Delivery task {task_id} not found in the database")
-        
-        # If the user is an admin, they can confirm any delivery task
-        # If not, check if the task belongs to the driver
-        if not is_admin and task_exists.driver_id != driver_id:
-            print(f"Delivery task {task_id} exists but is assigned to driver {task_exists.driver_id}, not {driver_id}")
-            raise HTTPException(status_code=403, detail=f"Delivery task is assigned to driver {task_exists.driver_id}, not {driver_id}")
-        
-        # Get the task
-        if is_admin:
-            # Admin can access any task
-            task = task_exists
-            print(f"Admin confirming delivery task {task_id} assigned to driver {task.driver_id}")
-        else:
-            # Regular driver can only access their own tasks
-            task_result = await db.execute(
-                select(DeliveryTask).where(
-                    DeliveryTask.id == task_id,
-                    DeliveryTask.driver_id == driver_id
-                )
+        # Check if delivery task exists and belongs to the driver
+        task_result = await db.execute(
+            select(DeliveryTask).where(
+                DeliveryTask.id == task_id,
+                DeliveryTask.driver_id == driver_id
             )
-            task = task_result.scalar_one_or_none()
-            if not task:
-                print(f"Delivery task {task_id} not found or not assigned to driver {driver_id}")
-                raise HTTPException(status_code=404, detail="Delivery task not found or not assigned to this driver.")
+        )
+        task = task_result.scalar_one_or_none()
+        if not task:
+            raise HTTPException(status_code=404, detail="Delivery task not found or not assigned to this driver.")
             
         # In a real application, we would verify the OTP here
         # For this example, we'll just accept any OTP
@@ -382,75 +313,3 @@ async def confirm_delivery_with_otp(db: AsyncSession, task_id: int, otp: str, dr
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to confirm delivery: {str(e)}")
-
-
-async def get_assigned_deliveries(db: AsyncSession, driver_id: int) -> List[dict]:
-    """
-    Get all deliveries assigned to a specific driver.
-    Role: Driver
-    """
-    try:
-        print(f"Attempting to get assigned deliveries for driver {driver_id}")
-        
-        # Check if driver exists and has driver role
-        driver_result = await db.execute(select(User).where(User.id == driver_id))
-        driver = driver_result.scalar_one_or_none()
-        if not driver:
-            print(f"Driver with ID {driver_id} not found")
-            raise HTTPException(status_code=404, detail=f"Driver with ID {driver_id} not found")
-            
-        # Check if the user is a driver
-        if driver.role != "driver":
-            print(f"User with ID {driver_id} is not a driver, role: {driver.role}")
-            raise HTTPException(status_code=403, detail=f"User with ID {driver_id} is not a driver, role: {driver.role}")
-            
-        # Get all delivery tasks assigned to the driver
-        tasks_result = await db.execute(
-            select(DeliveryTask).where(DeliveryTask.driver_id == driver_id)
-        )
-        tasks = tasks_result.scalars().all()
-        
-        print(f"Found {len(tasks)} delivery tasks assigned to driver {driver_id}")
-        if len(tasks) == 0:
-            # Return an empty list instead of raising an error
-            print(f"No delivery tasks assigned to driver {driver_id}")
-            return []
-        
-        # Convert to list of dictionaries
-        result = []
-        for task in tasks:
-            task_dict = {}
-            for c in DeliveryTask.__table__.columns:
-                value = getattr(task, c.name)
-                if isinstance(value, datetime):
-                    task_dict[c.name] = value.isoformat()
-                else:
-                    task_dict[c.name] = value
-                    
-            # Add timestamp information manually
-            current_time = datetime.utcnow().isoformat()
-            task_dict['updated_at'] = current_time
-            if 'created_at' not in task_dict or task_dict['created_at'] is None:
-                task_dict['created_at'] = current_time
-                
-            # Get order details
-            try:
-                order_result = await db.execute(select(Order).where(Order.id == task.order_id))
-                order = order_result.scalar_one_or_none()
-                if order:
-                    task_dict["order_details"] = {
-                        "id": order.id,
-                        "status": order.status,
-                        "total_amount": order.total_amount,
-                        "created_at": order.created_at.isoformat() if order.created_at else None
-                    }
-            except Exception as e:
-                print(f"Error getting order details: {str(e)}")
-                
-            result.append(task_dict)
-            
-        return result
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get assigned deliveries: {str(e)}")

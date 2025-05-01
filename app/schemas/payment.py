@@ -180,20 +180,16 @@ class PaymentStatus(BaseModel):
     )
     payment_method: str = Field(
         ...,
-        pattern="^(credit_card|debit_card|net_banking|upi|wallet)$",
         description="Method used for payment",
         example="credit_card"
     )
     payment_gateway: str = Field(
         ...,
-        pattern="^(stripe|razorpay|paypal|other)$",
         description="Payment gateway used",
         example="stripe"
     )
     transaction_id: str = Field(
         ...,
-        min_length=5,
-        max_length=100,
         description="Unique transaction ID from payment gateway",
         example="txn_123456789"
     )
@@ -230,7 +226,7 @@ class PaymentStatus(BaseModel):
         example="Insufficient funds"
     )
     payment_details: dict = Field(
-        ...,
+        default_factory=dict,
         description="Additional payment details from gateway",
         example={
             "card_last4": "4242",

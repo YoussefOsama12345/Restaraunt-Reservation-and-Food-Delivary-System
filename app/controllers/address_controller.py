@@ -10,8 +10,7 @@ Delegates business logic to address_service or directly accesses the DB via SQLA
 # handled both Pydantic v1 and v2 serialization, and ensured proper error handling for FastAPI endpoints.
 # ---
 from typing import List
-from fastapi import Depends, APIRouter
-from sqlalchemy.orm import Session
+from fastapi import Depends, APIRouter, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi.encoders import jsonable_encoder
@@ -27,12 +26,11 @@ async def create_address(address: AddressCreate, user_id: int, db: AsyncSession)
     """
     Create a new address for the user.
     """
-    addr = await address_service.create_address(address, user_id, db)
-    # Pydantic v2: use AddressRead.model_validate if available, else AddressRead.from_orm
     try:
-        return AddressRead.model_validate(addr)
-    except AttributeError:
+        addr = await address_service.create_address(address, user_id, db)
         return AddressRead.from_orm(addr)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 async def list_addresses(user_id: int, db: AsyncSession) -> list[dict]:
@@ -41,31 +39,40 @@ async def list_addresses(user_id: int, db: AsyncSession) -> list[dict]:
     """
     result = await db.execute(select(Address).where(Address.user_id == user_id))
     addresses = result.scalars().all()
-    return [jsonable_encoder(AddressRead.model_validate(addr) if hasattr(AddressRead, 'model_validate') else AddressRead.from_orm(addr)) for addr in addresses]
+    return [jsonable_encoder(AddressRead.from_orm(addr)) for addr in addresses]
 
 
-def get_address_by_id(address_id: int, user_id: int, db: Session) -> dict:
+async def get_address_by_id(address_id: int, user_id: int, db: AsyncSession) -> dict:
     """
     Get a specific address by ID for the user.
     """
-    addr = address_service.get_address_by_id(address_id, user_id, db)
-    return jsonable_encoder(AddressRead.model_validate(addr) if hasattr(AddressRead, 'model_validate') else AddressRead.from_orm(addr))
+    try:
+        addr = await address_service.get_address_by_id(address_id, user_id, db)
+        return jsonable_encoder(AddressRead.from_orm(addr))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 async def update_address(address_id: int, address: AddressUpdate, user_id: int, db: AsyncSession) -> dict:
     """
     Update an existing address for the user.
     """
-    addr = await address_service.update_address(address_id, address, user_id, db)
-    return jsonable_encoder(AddressRead.model_validate(addr) if hasattr(AddressRead, 'model_validate') else AddressRead.from_orm(addr))
+    try:
+        addr = await address_service.update_address(address_id, address, user_id, db)
+        return jsonable_encoder(AddressRead.from_orm(addr))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 async def delete_address(address_id: int, user_id: int, db: AsyncSession) -> dict:
     """
     Delete an address for the user.
     """
-    addr = await address_service.delete_address(address_id, user_id, db)
-    return jsonable_encoder(addr)
+    try:
+        addr = await address_service.delete_address(address_id, user_id, db)
+        return jsonable_encoder(addr)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 async def get_default_address(user_id: int, db: AsyncSession) -> dict | None:
@@ -73,4 +80,6 @@ async def get_default_address(user_id: int, db: AsyncSession) -> dict | None:
     Get the default address for the user.
     """
     addr = await address_service.get_default_address(user_id, db)
-    return jsonable_encoder(AddressRead.model_validate(addr) if hasattr(AddressRead, 'model_validate') else AddressRead.from_orm(addr)) if addr else None
+    if not addr:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No default address found")
+    return jsonable_encoder(AddressRead.from_orm(addr))

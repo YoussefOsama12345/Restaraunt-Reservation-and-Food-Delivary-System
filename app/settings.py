@@ -15,13 +15,13 @@ Environment Variables Expected:
     - DB_PORT
     - DB_NAME
     - SECRET_KEY
+    - DATABASE_URL
 """
 
-import os
 from dotenv import load_dotenv
-
-
-load_dotenv()
+import os
+# Load .env from the project root, regardless of where the script is run
+load_dotenv(dotenv_path=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env')), override=True)
 
 class Settings:
     """
@@ -43,20 +43,13 @@ class Settings:
     DB_NAME: str = os.getenv("DB_NAME")
     SECRET_KEY: str = os.getenv("SECRET_KEY")  
 
-    @property
-    def DATABASE_URL(self) -> str:
-        """
-        Constructs the full SQLAlchemy database URL using aiomysql for async MySQL support.
-
-        Returns:
-            str: SQLAlchemy-compatible database connection URL
-        """
-        return (
-            f"mysql+aiomysql://{self.DB_USER}:{self.DB_PASSWORD}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-        )
-
 settings = Settings()
 
+# Use DATABASE_URL only from environment, outside the class
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Debug print to confirm .env loading
+# print("DEBUG: DATABASE_URL from .env:", DATABASE_URL)
+
 if __name__ == "__main__":
-    print(settings.DATABASE_URL)
+    pass

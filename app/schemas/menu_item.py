@@ -5,7 +5,7 @@ Defines models for menu item creation, update, and response including
 name, price, category, image, availability, and dietary flags.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -20,7 +20,8 @@ class MenuItemBase(BaseModel):
     is_vegetarian: Optional[bool] = Field(False)
     category_id: Optional[int] = Field(None, description="ID of the category this item belongs to")
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 class MenuItemCreate(MenuItemBase):
@@ -37,6 +38,7 @@ class MenuItemCreate(MenuItemBase):
     available: bool = Field(True, example=True)
     is_vegetarian: bool = Field(False, example=True)
     category_id: int = Field(..., gt=0, example=1)
+    restaurant_id: int = Field(..., gt=0, example=1)
     preparation_time: Optional[int] = Field(None, ge=0, example=15)
     calories: Optional[int] = Field(None, ge=0, example=850)
     ingredients: Optional[str] = Field(
@@ -46,7 +48,8 @@ class MenuItemCreate(MenuItemBase):
         None, max_items=10, example=["vegetarian", "italian", "pizza"]
     )
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 class MenuItemUpdate(MenuItemBase):
@@ -74,7 +77,8 @@ class MenuItemUpdate(MenuItemBase):
     last_updated_by: Optional[str] = Field(None, min_length=3, max_length=50, example="chef_john")
     update_reason: Optional[str] = Field(None, max_length=200, example="Seasonal price adjustment")
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 class MenuItemRead(MenuItemBase):
@@ -87,8 +91,6 @@ class MenuItemRead(MenuItemBase):
     calories: int = Field(..., ge=0, example=850)
     ingredients: str = Field(..., max_length=500, example="Tomato sauce, mozzarella cheese, fresh basil, olive oil")
     tags: List[str] = Field(..., max_items=10, example=["vegetarian", "italian", "pizza"])
-    average_rating: float = Field(0.0, ge=0.0, le=5.0, example=4.5)
-    total_orders: int = Field(0, ge=0, example=150)
     last_ordered_at: Optional[datetime] = Field(None)
     nutritional_info: Optional[dict] = Field(
         None,
@@ -101,5 +103,9 @@ class MenuItemRead(MenuItemBase):
     )
     serving_size: Optional[str] = Field(None, example="1 pizza (12 inches)")
     estimated_cooking_time: Optional[int] = Field(None, ge=0, example=15)
+    average_rating: float = Field(0.0, ge=0.0, le=5.0, example=4.5)
+    total_orders: int = Field(0, ge=0, example=150)
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
+        arbitrary_types_allowed = True

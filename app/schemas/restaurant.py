@@ -221,8 +221,8 @@ class RestaurantRead(RestaurantBase):
         average_rating (Optional[float]): Average customer rating.
         total_reviews (Optional[int]): Total number of customer reviews.
         is_active (bool): Whether the restaurant is currently active.
-        created_at (datetime): When the restaurant was created.
-        updated_at (datetime): When the restaurant was last updated.
+        created_at (Optional[datetime]): When the restaurant was created.
+        updated_at (Optional[datetime]): When the restaurant was last updated.
     """
     id: int = Field(
         ...,
@@ -278,15 +278,7 @@ class RestaurantRead(RestaurantBase):
         description="Total number of customer reviews",
         example=42
     )
-    created_at: datetime = Field(
-        ...,
-        description="When the restaurant was created",
-        example="2024-04-18T10:00:00Z"
-    )
-    updated_at: datetime = Field(
-        ...,
-        description="When the restaurant was last updated",
-        example="2024-04-18T15:30:00Z"
-    )
+    created_at: Optional[datetime] = Field(default=None, description="When the restaurant was created", example="2024-04-18T10:00:00Z")
+    updated_at: Optional[datetime] = Field(default=None, description="When the restaurant was last updated", example="2024-04-18T15:30:00Z")
 
     model_config = ConfigDict(from_attributes=True)

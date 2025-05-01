@@ -22,6 +22,9 @@ class CategoryBase(BaseModel):
         example="Sweet items served after main course."
     )
 
+    class Config:
+        orm_mode = True
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -60,6 +63,9 @@ class CategoryCreate(CategoryBase):
         ge=1,
         description="ID of the parent category if this is a subcategory"
     )
+
+    class Config:
+        orm_mode = True
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -103,6 +109,9 @@ class CategoryUpdate(BaseModel):
         description="Updated ID of the parent category"
     )
 
+    class Config:
+        orm_mode = True
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -126,5 +135,8 @@ class CategoryRead(CategoryBase):
         le=5.0,
         description="Average rating of items in this category"
     )
+
+    class Config:
+        orm_mode = True
 
     model_config = ConfigDict(from_attributes=True)

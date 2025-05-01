@@ -86,6 +86,10 @@ class DeliveryTask(Base):
     feedback = Column(Text, nullable=True)
     location_latitude = Column(Float, nullable=True)
     location_longitude = Column(Float, nullable=True)
+    # Note: created_at and updated_at fields are commented out
+    # because they don't exist in the database yet
+    # created_at = Column(DateTime, default=datetime.utcnow)
+    # updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     order = relationship("Order", back_populates="delivery_task", foreign_keys=[order_id])

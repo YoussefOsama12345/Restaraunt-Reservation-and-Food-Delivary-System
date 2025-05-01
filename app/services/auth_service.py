@@ -51,8 +51,24 @@ def register_user(db: Session, user_data: UserCreate) -> User:
     """
     Register a new user using email and password.
     Role: Public
+    
+    Note: This function uses a synchronous SQLAlchemy session.
     """
     try:
+        # Convert schema UserRole to model UserRole if needed
+        role_value = getattr(user_data, "role", "customer")
+        if hasattr(role_value, "value"):  # If it's an enum instance
+            role_value = role_value.value
+            
+        # Map the role string to the model's UserRole enum
+        if role_value == "admin":
+            role = UserRole.ADMIN
+        elif role_value == "driver":
+            role = UserRole.DRIVER
+        else:
+            role = UserRole.CUSTOMER
+        
+        # Create user with synchronous SQLAlchemy
         user = User(
             email=user_data.email,
             username=user_data.username,
@@ -60,7 +76,7 @@ def register_user(db: Session, user_data: UserCreate) -> User:
             full_name=getattr(user_data, "full_name", None),
             phone_number=getattr(user_data, "phone_number", None),
             is_active=True,
-            role=UserRole.CUSTOMER,
+            role=role,
             account_status="active",
             verification_status="unverified",
         )
@@ -73,27 +89,98 @@ def register_user(db: Session, user_data: UserCreate) -> User:
         raise HTTPException(status_code=400, detail="Email or username already exists")
     except Exception as e:
         db.rollback()
-        raise
+        raise HTTPException(status_code=500, detail=f"Failed to register user: {str(e)}")
 
 
 async def authenticate_user(db: AsyncSession, identifier: str, password: str) -> Optional[User]:
     """
     Authenticate a user with email OR username and password (ASYNC).
     Role: Public
+    
+    Args:
+        db: Async database session
+        identifier: Email or username
+        password: Plain text password
+        
+    Returns:
+        User object if authentication successful, None otherwise
     """
-    result = await db.execute(
-        select(User).where((User.email == identifier) | (User.username == identifier))
-    )
-    user = result.scalars().first()
-    print("User object:", user)
-    if user:
-        print("User dict:", getattr(user, "__dict__", str(user)))
-        print("User attributes:", dir(user))
-    if not user:
+    try:
+        print(f"===== AUTHENTICATION DEBUG =====")
+        print(f"Authenticating user with identifier: '{identifier}'")
+        print(f"Password type: {type(password)}, Length: {len(password) if password else 0}")
+        
+        # Try to find the user by email or username
+        query = select(User).where((User.email == identifier) | (User.username == identifier))
+        print(f"Query: {query}")
+        
+        result = await db.execute(query)
+        user = result.scalars().first()
+        
+        # Debug output
+        print(f"User found: {user is not None}")
+        
+        if not user:
+            print(f"No user found with identifier: '{identifier}'")
+            return None
+            
+        # Debug output for user details
+        print(f"User details:")
+        print(f"  ID: {user.id}")
+        print(f"  Username: '{user.username}'")
+        print(f"  Email: '{user.email}'")
+        print(f"  Role: {user.role}")
+        
+        # Debug output for password verification
+        print(f"Verifying password for user: '{user.username}'")
+        
+        # Get the hashed password from the user object
+        hashed_password = user.hashed_password
+        print(f"Hashed password: '{hashed_password}'")
+        
+        if not hashed_password:
+            print("User has no password set")
+            return None
+            
+        # Verify the password using the security module
+        # Use a direct import to avoid any potential circular import issues
+        from app.security.jwt import verify_password as direct_verify_password
+        
+        # Try both the imported function and a direct call to passlib
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        
+        result1 = direct_verify_password(password, hashed_password)
+        result2 = pwd_context.verify(password, hashed_password)
+        
+        print(f"Password verification results:")
+        print(f"  Using jwt.verify_password: {result1}")
+        print(f"  Using direct passlib: {result2}")
+        
+        if not (result1 or result2):
+            print("Password verification failed with both methods")
+            return None
+            
+        print(f"Authentication successful for user: '{user.username}'")
+        
+        # Update last login time
+        user.last_login = datetime.utcnow()
+        try:
+            await db.commit()
+            print("Last login time updated successfully")
+        except Exception as commit_error:
+            print(f"Warning: Could not update last_login time: {str(commit_error)}")
+            # Don't fail authentication just because we couldn't update last_login
+            await db.rollback()
+        
+        print("Returning authenticated user")
+        return user
+        
+    except Exception as e:
+        print(f"Authentication error: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        await db.rollback()
         return None
-    if not verify_password(password, user.hashed_password):
-        return None
-    return user
 
 # --------------------------- JWT SESSION MANAGEMENT --------------------------- #
 

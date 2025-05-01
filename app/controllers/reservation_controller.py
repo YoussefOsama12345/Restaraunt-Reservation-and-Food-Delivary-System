@@ -9,66 +9,93 @@ Roles:
 """
 
 from typing import List, Optional
-from fastapi import Depends
-from sqlalchemy.orm import Session
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.services import reservation_service
+from app.schemas.reservation import ReservationCreate, ReservationUpdate, ReservationRead
 
 
-def create_reservation_controller(
-    reservation_data: Depends,
-    db: Session = Depends(),
+async def create_reservation_controller(
+    reservation_data: ReservationCreate,
+    user_id: int,
+    db: AsyncSession = Depends(),
     current_user: Depends = Depends(),
-) -> dict:
+) -> ReservationRead:
     """
     Create a new table reservation.
     Role: User
     """
-    pass
+    try:
+        reservation_dict = reservation_data.dict()
+        result = await reservation_service.create_reservation(reservation_dict, user_id, db)
+        return ReservationRead(**result)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def get_reservation_controller(
+async def get_reservation_controller(
     reservation_id: int,
-    db: Session = Depends(),
+    user_id: int,
+    db: AsyncSession = Depends(),
     current_user: Depends = Depends(),
-) -> Depends:
+) -> ReservationRead:
     """
     Get a reservation by its ID.
     Role: User
     """
-    pass
+    try:
+        result = await reservation_service.get_reservation(reservation_id, user_id, db)
+        return ReservationRead(**result)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
-def list_reservations_controller(
-    user_id: Optional[int] = None,
-    db: Session = Depends(),
+async def list_reservations_controller(
+    user_id: int,
+    db: AsyncSession = Depends(),
     current_user: Depends = Depends(),
-) -> List[Depends]:
+) -> List[ReservationRead]:
     """
     List reservations. Optionally filter by user ID.
     Role: User
     """
-    pass
+    try:
+        results = await reservation_service.list_reservations(user_id, db)
+        return [ReservationRead(**r) for r in results]
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def update_reservation_controller(
+async def update_reservation_controller(
     reservation_id: int,
-    update_data: Depends,
-    db: Session = Depends(),
+    reservation_data: ReservationUpdate,
+    user_id: int,
+    db: AsyncSession = Depends(),
     current_user: Depends = Depends(),
-) -> Depends:
+) -> ReservationRead:
     """
     Update an existing reservation.
     Role: User
     """
-    pass
+    try:
+        update_dict = reservation_data.dict(exclude_unset=True)
+        result = await reservation_service.update_reservation(reservation_id, update_dict, user_id, db)
+        return ReservationRead(**result)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def cancel_reservation_controller(
+async def cancel_reservation_controller(
     reservation_id: int,
-    db: Session = Depends(),
+    user_id: int,
+    db: AsyncSession = Depends(),
     current_user: Depends = Depends(),
 ) -> dict:
     """
     Cancel an existing reservation.
     Role: User
     """
-    pass
+    try:
+        return await reservation_service.cancel_reservation(reservation_id, user_id, db)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

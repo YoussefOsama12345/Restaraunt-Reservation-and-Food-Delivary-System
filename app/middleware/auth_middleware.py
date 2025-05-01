@@ -22,9 +22,10 @@ async def auth_middleware(request: Request, call_next):
     
     try:
         # Get DB session
-        db = next(get_db())
-        # Verify token and get user
-        await get_current_user(request, db)
+        async for db in get_db():
+            # Verify token and get user
+            await get_current_user(request, db)
+            break
     except Exception as e:
         # For protected routes that require authentication, let the dependency handle it
         # This middleware just ensures the token is valid for all non-public routes

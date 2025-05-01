@@ -13,52 +13,63 @@ Delegates business logic to address_service.
 Access: All endpoints require authenticated users.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, status, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import update
 from typing import List
-from fastapi import Depends
-from sqlalchemy.orm import Session
+from app.api.deps import get_db, get_current_user
+from app.schemas.category import CategoryCreate, CategoryUpdate, CategoryRead
+from app.controllers import category_controller
+from app.db.database import get_db
+from app.db.models.category import Category
 
-router = APIRouter(
-    prefix="/categories",
-    tags=["categories"],
-)
+router = APIRouter(tags=["categories"])
 
+@router.post("/", response_model=CategoryRead, status_code=status.HTTP_201_CREATED)
+async def create_category(
+    category_data: CategoryCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return await category_controller.create_category(category_data, db, current_user)
 
-def create_address():
-    """
-    Create a new delivery or billing address.
-    Role: User
-    """
-    pass
+@router.get("/", response_model=List[CategoryRead])
+async def list_categories(
+    db: AsyncSession = Depends(get_db)
+):
+    return await category_controller.list_categories(db)
 
+@router.get("/{category_id}", response_model=CategoryRead)
+async def get_category_by_id(
+    category_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    return await category_controller.get_category_by_id(category_id, db)
 
-def get_user_addresses():
-    """
-    Retrieve all addresses saved by the user.
-    Role: User
-    """
-    pass
+@router.put("/{category_id}", response_model=CategoryRead)
+async def update_category(
+    category_id: int,
+    update_data: CategoryUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    return await category_controller.update_category(category_id, update_data, db, current_user)
 
+@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_category(
+    category_id: int,
+    force: bool = Query(False, description="Force delete all related cart items and menu items"),
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    await category_controller.delete_category(category_id, db, current_user, force)
+    return None
 
-def update_address():
-    """
-    Update an existing address by its ID.
-    Role: User
-    """
-    pass
-
-
-def delete_address():
-    """
-    Delete an address from the user's account.
-    Role: User
-    """
-    pass
-
-
-def get_default_address():
-    """
-    Retrieve the default address for the user.
-    Role: User
-    """
-    pass
+@router.post("/fix-null-fields", tags=["categories"], include_in_schema=True)
+async def fix_null_category_fields(db: AsyncSession = Depends(get_db), current_user=Depends(get_current_user)):
+    # Only allow admin (add your admin check here if needed)
+    await db.execute(update(Category).where(Category.display_order == None).values(display_order=0))
+    await db.execute(update(Category).where(Category.item_count == None).values(item_count=0))
+    await db.execute(update(Category).where(Category.total_sales == None).values(total_sales=0.0))
+    await db.commit()
+    return {"detail": "Null fields fixed."}

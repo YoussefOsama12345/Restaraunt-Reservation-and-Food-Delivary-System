@@ -11,8 +11,10 @@ Defines common dependencies for API endpoints, including:
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from sqlalchemy.future import select
 from app.db.database import get_db
+from app.db.session import SessionLocal
 from app.db.models.user import User, UserRole
 from app.security.jwt import decode_access_token
 
@@ -48,6 +50,18 @@ async def get_current_user(credentials: str = Depends(bearer_scheme), db: AsyncS
     if not user:
         raise credentials_exception
     return user
+
+def get_db_session() -> Session:
+    """
+    Get a SQLAlchemy Session for synchronous operations.
+    This is needed for some operations that require synchronous session,
+    such as user registration.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
     """

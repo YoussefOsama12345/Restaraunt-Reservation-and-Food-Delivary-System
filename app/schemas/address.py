@@ -142,11 +142,11 @@ class AddressRead(AddressBase):
     """
     id: int = Field(description="Unique identifier of the address")
     user_id: int = Field(description="ID of the user who owns this address")
-    created_at: datetime = Field(description="When the address was created")
-    updated_at: datetime = Field(description="When the address was last updated")
-    is_active: bool = Field(default=True, description="Whether the address is currently active")
+    created_at: Optional[datetime] = Field(default=None, description="When the address was created")
+    updated_at: Optional[datetime] = Field(default=None, description="When the address was last updated")
+    is_active: Optional[bool] = Field(default=None, description="Whether the address is currently active")
     last_used_at: Optional[datetime] = Field(default=None, description="When the address was last used for delivery")
-    usage_count: int = Field(default=0, ge=0, description="Number of times this address has been used")
+    usage_count: Optional[int] = Field(default=None, ge=0, description="Number of times this address has been used")
 
     class Config:
         orm_mode = True

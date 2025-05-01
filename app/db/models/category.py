@@ -14,7 +14,7 @@ Usage:
 """
 
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from datetime import datetime
 from .base import Base
 
@@ -48,11 +48,11 @@ class Category(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     image_url = Column(String(255), nullable=True)
-    display_order = Column(Integer, default=0)
+    display_order = Column(Integer, default=0, nullable=False)
     parent_id = Column(Integer, ForeignKey('categories.id'), nullable=True)
-    item_count = Column(Integer, default=0)
-    total_sales = Column(Float, default=0.0)
+    item_count = Column(Integer, default=0, nullable=False)
+    total_sales = Column(Float, default=0.0, nullable=False)
     
     # Relationships
-    menu_items = relationship("MenuItem", back_populates="category")
-    parent = relationship("Category", remote_side=[id], backref="subcategories")
+    menu_items = relationship("MenuItem", back_populates="category", cascade="all, delete-orphan", passive_deletes=True, single_parent=True)
+    parent = relationship("Category", remote_side=[id], backref=backref("subcategories", cascade="all, delete-orphan", passive_deletes=True, single_parent=True))

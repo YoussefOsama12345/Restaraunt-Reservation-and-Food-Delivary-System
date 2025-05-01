@@ -65,7 +65,7 @@ class MenuItem(Base):
     image_url = Column(String(255), nullable=True)
     available = Column(Boolean, default=True)
     is_vegetarian = Column(Boolean, default=False)
-    category_id = Column(Integer, ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
+    category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=True)
     restaurant_id = Column(Integer, ForeignKey("restaurants.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -81,8 +81,8 @@ class MenuItem(Base):
     tags = Column(String(500), nullable=True)
     
     # Relationships
-    category = relationship("Category", back_populates="menu_items")
+    category = relationship("Category", back_populates="menu_items", passive_deletes=True, single_parent=True)
     restaurant = relationship("Restaurant", back_populates="menu_items")
-    cart_items = relationship("CartItem", back_populates="menu_item")
-    order_items = relationship("OrderItem", back_populates="menu_item")
-    reviews = relationship("Review", back_populates="menu_item")
+    cart_items = relationship("CartItem", back_populates="menu_item", cascade="all, delete-orphan")
+    order_items = relationship("OrderItem", back_populates="menu_item", cascade="all, delete-orphan")
+    reviews = relationship("Review", back_populates="menu_item", cascade="all, delete-orphan")

@@ -7,76 +7,103 @@ the review_service module.
 """
 
 from typing import List
-from fastapi import Depends
-from sqlalchemy.orm import Session
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.services import review_service
+from app.schemas.review import ReviewCreate, ReviewUpdate, ReviewRead
 
 
-def create_review_controller(
-    review_data: Depends,
-    db: Session = Depends(),
-    current_user: Depends = Depends(),
-) -> Depends:
+async def create_review_controller(
+    review_data: ReviewCreate,
+    current_user,
+    db: AsyncSession = Depends(),
+) -> ReviewRead:
     """
     Submit a new review for a menu item or restaurant.
     Role: User
     """
-    pass
+    try:
+        review_dict = review_data.dict()
+        result = await review_service.create_review(review_dict, current_user, db)
+        return ReviewRead(**result)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def list_reviews_for_item_controller(
+async def list_reviews_for_item_controller(
     item_id: int,
-    db: Session = Depends(),
-) -> List[Depends]:
+    db: AsyncSession = Depends(),
+) -> List[ReviewRead]:
     """
     Get all reviews for a specific menu item.
     Role: Public
     """
-    pass
+    try:
+        results = await review_service.list_reviews_for_item(item_id, db)
+        return [ReviewRead(**r) for r in results]
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def list_reviews_by_user_controller(
+async def list_reviews_by_user_controller(
     user_id: int,
-    db: Session = Depends(),
-    current_user: Depends = Depends(),
-) -> List[Depends]:
+    current_user,
+    db: AsyncSession = Depends(),
+) -> List[ReviewRead]:
     """
     Get all reviews submitted by a specific user.
     Role: User
     """
-    pass
+    try:
+        results = await review_service.list_reviews_by_user(user_id, current_user, db)
+        return [ReviewRead(**r) for r in results]
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def get_review_controller(
+async def get_review_controller(
     review_id: int,
-    db: Session = Depends(),
-) -> Depends:
+    db: AsyncSession = Depends(),
+) -> ReviewRead:
     """
     Retrieve details of a single review by ID.
     Role: Public
     """
-    pass
+    try:
+        result = await review_service.get_review(review_id, db)
+        return ReviewRead(**result)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
-def update_review_controller(
+async def update_review_controller(
     review_id: int,
-    update_data: Depends,
-    db: Session = Depends(),
-    current_user: Depends = Depends(),
-) -> Depends:
+    review_data: ReviewUpdate,
+    current_user,
+    db: AsyncSession = Depends(),
+) -> ReviewRead:
     """
     Update an existing review's content or rating.
     Role: User
     """
-    pass
+    try:
+        update_dict = review_data.dict(exclude_unset=True)
+        result = await review_service.update_review(review_id, update_dict, current_user, db)
+        return ReviewRead(**result)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def delete_review_controller(
+async def delete_review_controller(
     review_id: int,
-    db: Session = Depends(),
-    current_user: Depends = Depends(),
+    current_user,
+    db: AsyncSession = Depends(),
 ) -> dict:
     """
     Delete a review by its ID.
     Role: User
     """
-    pass
+    try:
+        return await review_service.delete_review(review_id, current_user, db)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

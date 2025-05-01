@@ -11,9 +11,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from app.db.models.base import Base
-from app.settings import settings
+from app.settings import DATABASE_URL
 
-engine = create_async_engine(settings.DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=False)
 
 async_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 

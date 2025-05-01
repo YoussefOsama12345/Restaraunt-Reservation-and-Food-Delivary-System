@@ -1,11 +1,11 @@
 """
-Delivery schema definitions using Pydantic 2.0.
+Delivery schema definitions using Pydantic v1.
 
 Defines models for creating, updating, and reading delivery tasks,
 including assignment to drivers, status tracking, and OTP confirmation.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -20,7 +20,8 @@ class DeliveryBase(BaseModel):
     status: Optional[str] = Field("assigned", example="assigned")
     otp: Optional[str] = Field(None, example="845692")
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 # === CREATE SCHEMA ===
@@ -54,7 +55,8 @@ class DeliveryCreate(DeliveryBase):
         example="medium"
     )
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 # === STATUS UPDATE SCHEMA ===
@@ -73,7 +75,8 @@ class DeliveryUpdateStatus(BaseModel):
     location_longitude: Optional[float] = Field(None, ge=-180, le=180, example=-74.0060)
     estimated_time_remaining: Optional[int] = Field(None, ge=0, example=15)
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 # === OTP CONFIRMATION SCHEMA ===
@@ -93,7 +96,8 @@ class DeliveryConfirm(BaseModel):
     delivery_photo: Optional[str] = Field(None, example="data:image/jpeg;base64,/9j/4AA...")
     notes: Optional[str] = Field(None, max_length=500, example="Leave package at the front door")
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 # === READ SCHEMA ===
@@ -119,4 +123,5 @@ class DeliveryRead(DeliveryBase):
     rating: Optional[int] = Field(None, ge=1, le=5, example=5)
     feedback: Optional[str] = Field(None, max_length=1000, example="Driver was punctual and professional")
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True

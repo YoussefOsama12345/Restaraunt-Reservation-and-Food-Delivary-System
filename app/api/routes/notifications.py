@@ -10,39 +10,70 @@ This module defines API endpoints for sending notifications to users and admins:
 All endpoints require authentication.
 """
 from typing import List
-from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.api.deps import get_current_user, get_db
+from app.controllers import notification_controller
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
-def reservation_reminder(reservation_id: int, current_user):
+@router.post("/reservation-reminder/{reservation_id}")
+async def reservation_reminder(
+    reservation_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """
-    Send a reminder email for a reservation.
-    Role: User
+    Send a reminder email for a reservation. Role: User
     """
-    pass
+    try:
+        return await notification_controller.send_reservation_reminder_controller(reservation_id, db, current_user)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def order_confirmation(order_id: int, current_user):
+@router.post("/order-confirmation/{order_id}")
+async def order_confirmation(
+    order_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """
-    Send an email confirmation after order placement.
-    Role: User
+    Send an email confirmation after order placement. Role: User
     """
-    pass
+    try:
+        return await notification_controller.send_order_confirmation_controller(order_id, db, current_user)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def order_receipt(order_id: int, current_user):
+@router.post("/order-receipt/{order_id}")
+async def order_receipt(
+    order_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """
-    Send a receipt email for an order.
-    Role: User
+    Send a receipt email for an order. Role: User
     """
-    pass
+    try:
+        return await notification_controller.send_order_receipt_controller(order_id, db, current_user)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-def notify_admins(message: str, current_user, subject: str = "Admin Notification"):
+@router.post("/admin-alert")
+async def notify_admins(
+    message: str,
+    subject: str = "Admin Notification",
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """
-    Send a custom alert to all admin users.
-    Role: Admin
+    Send a custom alert to all admin users. Role: Admin
     """
-    pass
+    try:
+        return await notification_controller.send_admin_alert_controller(message, subject, db, current_user)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

@@ -18,7 +18,6 @@ Role:
 # Ensured all DB operations use await, fixed compatibility with async controller/routes, and improved error handling.
 # ---
 from typing import List, Optional
-from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.models.address import Address
@@ -42,21 +41,15 @@ class AddressUpdate:
     label: Optional[str]
     is_default: Optional[bool]
 
-async def create_address(address_data: AddressCreate, user_id: int, db: AsyncSession) -> Address:
+async def create_address(address_data, user_id: int, db: AsyncSession) -> Address:
     """
     Create a new delivery or billing address for the user.
     Role: User
     """
-    address = Address(
-        user_id=user_id,
-        street_address=getattr(address_data, 'street_address', None),
-        city=getattr(address_data, 'city', None),
-        state=getattr(address_data, 'state', None),
-        postal_code=getattr(address_data, 'postal_code', None),
-        country=getattr(address_data, 'country', None),
-        is_default=getattr(address_data, 'is_default', False),
-        label=getattr(address_data, 'label', None)
-    )
+    data = address_data.dict(exclude_unset=True) if hasattr(address_data, 'dict') else dict(address_data)
+    data_filtered = {k: v for k, v in data.items() if k in Address.__table__.columns.keys()}
+    data_filtered['user_id'] = user_id
+    address = Address(**data_filtered)
     db.add(address)
     await db.commit()
     await db.refresh(address)
@@ -83,7 +76,7 @@ async def get_address_by_id(address_id: int, user_id: int, db: AsyncSession) -> 
     return address
 
 
-async def update_address(address_id: int, address_data: AddressUpdate, user_id: int, db: AsyncSession) -> Address:
+async def update_address(address_id: int, address_data, user_id: int, db: AsyncSession) -> Address:
     """
     Update fields of an existing address.
     Role: User
@@ -92,8 +85,9 @@ async def update_address(address_id: int, address_data: AddressUpdate, user_id: 
     address = result.scalars().first()
     if not address:
         raise Exception("Address not found or unauthorized")
-    for field, value in address_data.__dict__.items():
-        if value is not None:
+    update_data = address_data.dict(exclude_unset=True) if hasattr(address_data, 'dict') else dict(address_data)
+    for field, value in update_data.items():
+        if value is not None and hasattr(address, field):
             setattr(address, field, value)
     await db.commit()
     await db.refresh(address)
@@ -114,7 +108,7 @@ async def delete_address(address_id: int, user_id: int, db: AsyncSession) -> dic
     return {"detail": "Address deleted successfully"}
 
 
-async def get_default_address(user_id: int, db: AsyncSession) -> Address | None:
+async def get_default_address(user_id: int, db: AsyncSession) -> Optional[Address]:
     """
     Retrieve the default address for a user.
     Role: User

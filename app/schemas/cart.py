@@ -1,11 +1,11 @@
 """
-Cart schema definitions using Pydantic 2.9.2.
+Cart schema definitions using Pydantic.
 
 Defines models for creating, updating, and retrieving cart items for authenticated users.
 Each cart item represents a menu item selected by the user and its desired quantity.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -14,26 +14,17 @@ class CartItemBase(BaseModel):
     """
     Shared base schema for cart item fields.
     """
-    menu_item_id: int = Field(description="ID of the selected menu item")
-    quantity: int = Field(gt=0, description="Quantity of the item in the cart")
+    menu_item_id: int = Field(..., description="ID of the selected menu item")
+    quantity: int = Field(..., gt=0, description="Quantity of the item in the cart")
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 class CartItemCreate(CartItemBase):
     """
     Schema for adding a new item to the user's cart with validation rules.
     """
-    menu_item_id: int = Field(
-        gt=0,
-        description="ID of the selected menu item",
-        example=123
-    )
-    quantity: int = Field(
-        gt=0,
-        description="Quantity of the item to add to cart",
-        example=2
-    )
     special_instructions: Optional[str] = Field(
         default=None,
         max_length=200,
@@ -46,7 +37,8 @@ class CartItemCreate(CartItemBase):
         example=[1, 3]
     )
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 class CartItemUpdate(BaseModel):
@@ -70,7 +62,8 @@ class CartItemUpdate(BaseModel):
         example=[2, 4]
     )
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 class CartItemRead(CartItemBase):
@@ -98,4 +91,5 @@ class CartItemRead(CartItemBase):
     )
     subtotal: float = Field(gt=0, description="Calculated subtotal for this item")
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
