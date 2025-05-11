@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Eye } from "lucide-react";
+import { Search, Edit, Trash2 } from "lucide-react";
 import styled from "styled-components";
 
 // Dummy order data
@@ -92,13 +92,25 @@ const TableCell = styled.td`
 `;
 
 const ActionButton = styled.button`
-  color: #818cf8;
-  &:hover {
-    color: #a5b4fc;
-  }
   background: transparent;
   border: none;
   cursor: pointer;
+  margin-right: 0.25rem;
+  color: ${({ color }) => color || '#60a5fa'};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  padding: 0.25rem;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:last-child {
+    margin-right: 0;
+  }
 `;
 
 // Badge for status with dynamic color
@@ -126,11 +138,15 @@ const StatusBadge = styled.span`
       : "#991b1b"};
 `;
 
-const OrdersTable = () => {
+const OrdersTable = ({ onEditClick, onDeleteClick }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOrders, setFilteredOrders] = useState(orderData);
 
-  // Handle user search input
+  // Update filtered orders when orderData changes
+  useEffect(() => {
+    handleSearch({ target: { value: searchTerm } });
+  }, [orderData]);
+
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
@@ -144,13 +160,23 @@ const OrdersTable = () => {
     setFilteredOrders(filtered);
   };
 
+  const handleDelete = (order) => {
+    // Remove the order from orderData
+    const index = orderData.findIndex(o => o.id === order.id);
+    if (index !== -1) {
+      orderData.splice(index, 1);
+      // Update filtered orders
+      handleSearch({ target: { value: searchTerm } });
+    }
+    onDeleteClick(order);
+  };
+
   return (
     <Container
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
     >
-      {/* Header and Search */}
       <TitleRow>
         <Heading>Order List</Heading>
         <SearchInputWrapper>
@@ -164,7 +190,6 @@ const OrdersTable = () => {
         </SearchInputWrapper>
       </TitleRow>
 
-      {/* Table */}
       <div style={{ overflowX: "auto" }}>
         <Table>
           <TableHead>
@@ -194,8 +219,19 @@ const OrdersTable = () => {
                 </TableCell>
                 <TableCell>{order.date}</TableCell>
                 <TableCell>
-                  <ActionButton aria-label='View Order'>
-                    <Eye size={18} />
+                  <ActionButton 
+                    color="#818cf8" 
+                    onClick={() => onEditClick(order)}
+                    title="Edit Order"
+                  >
+                    <Edit size={16} />
+                  </ActionButton>
+                  <ActionButton 
+                    color="#f87171" 
+                    onClick={() => handleDelete(order)}
+                    title="Delete Order"
+                  >
+                    <Trash2 size={16} />
                   </ActionButton>
                 </TableCell>
               </TableRow>

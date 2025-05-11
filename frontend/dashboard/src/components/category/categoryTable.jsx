@@ -1,26 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { Edit, Search, Trash2 } from 'lucide-react';
 
-
 const PRODUCT_DATA = [
-  { id: 1, name: "Neapolitan Pizza Dough", itemId: "INV001", category: "Baked", cost: 59.99, quantity: 143, expireDate: "2024-12-31" },
-  { id: 2, name: "Asian Noodles", itemId: "INV002", category: "Pasta", cost: 39.99, quantity: 89, expireDate: "2024-11-30" },
-  { id: 3, name: "Creamy Shrimp Fettuccine", itemId: "INV003", category: "Pasta", cost: 199.99, quantity: 56, expireDate: "2024-10-31" },
-  { id: 4, name: "Garlic Butter Steak", itemId: "INV004", category: "Meat", cost: 29.99, quantity: 210, expireDate: "2024-09-30" },
-  { id: 5, name: "Slow-Cooked Chicken", itemId: "INV005", category: "Meat", cost: 79.99, quantity: 78, expireDate: "2024-08-31" },
-];
+    { id: 1, productimage:"./menuImg/Neapolitan Pizza Dough.jpg", name: "Naepolitana Pizza Dough", category: "Baked", stock: 143, sales: 1200 },
+    { id: 2, productimage:"./menuImg/asian.jpeg" , name: "Leather Wallet", category: "Accessories", stock: 89, sales: 800 },
+    { id: 3, productimage:"./menuImg/creamy shrimp fettuccine pasta with homemade alfredo sauce -.jpeg", name: "Smart Watch", category: "Electronics",  stock: 56, sales: 650 },
+    { id: 4, productimage:"./menuImg/Garlic Butter Steak Bites and Mash.jpg", name: "Yoga Mat", category: "Fitness",  stock: 210, sales: 950 },
+    { id: 5, productimage:"./menuImg/Slow-Cooked Garlic Butter Chicken & Ribeye with….jpeg", name: "Coffee Maker", category: "Home", stock: 78, sales: 720 },
+  ];
 
-
-const TableWrapper = styled(motion.div)`
+  
+  const TableWrapper = styled(motion.div)`
   background-color: #1f2937;
   padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid #374151;
   backdrop-filter: blur(6px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  margin-bottom: 2rem;
   color: #f9fafb;
 `;
 
@@ -77,57 +75,64 @@ const Td = styled.td`
   color: #d1d5db;
 `;
 
+const CenteredTd = styled(Td)`
+  text-align: center;
+`;
+
+const ProductImage = styled.img`
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+`;
+
 const ActionButton = styled.button`
   background: transparent;
   border: none;
   cursor: pointer;
-  margin-right: 0.5rem;
+  margin-right: 0.25rem;
   color: ${({ color }) => color || '#60a5fa'};
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 0.375rem;
   transition: all 0.2s;
+  padding: 0.25rem;
 
   &:hover {
     opacity: 0.8;
   }
+
+  &:last-child {
+    margin-right: 0;
+  }
 `;
 
-const InventoryTable = ({ onDeleteClick, onEditClick }) => {
+const CategoryTable = ({ products, onDeleteClick, onModifyClick }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState(PRODUCT_DATA);
+  const [filteredProducts, setFilteredProducts] = useState(products);
 
-  // Update filtered products when PRODUCT_DATA changes
-  useEffect(() => {
-    handleSearch({ target: { value: searchTerm } });
-  }, [PRODUCT_DATA]);
+  // Update filtered products when products prop changes
+  React.useEffect(() => {
+    setFilteredProducts(products);
+  }, [products]);
 
-  // Filter products based on search
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-    const filtered = PRODUCT_DATA.filter(product => 
+    const filtered = products.filter(product => 
       product.name.toLowerCase().includes(term) || 
-      product.category.toLowerCase().includes(term) ||
-      product.itemId.toLowerCase().includes(term)
+      product.category.toLowerCase().includes(term)
     );
     setFilteredProducts(filtered);
   };
 
   const handleDelete = (product) => {
-    // Remove the item from PRODUCT_DATA
-    const index = PRODUCT_DATA.findIndex(p => p.id === product.id);
-    if (index !== -1) {
-      PRODUCT_DATA.splice(index, 1);
-      // Update filtered products
-      handleSearch({ target: { value: searchTerm } });
-    }
     onDeleteClick(product);
   };
 
-  const handleEdit = (product) => {
-    onEditClick(product);
+  const handleModify = (product) => {
+    onModifyClick(product);
   };
 
   return (
@@ -137,11 +142,11 @@ const InventoryTable = ({ onDeleteClick, onEditClick }) => {
       transition={{ delay: 0.2 }}
     >
       <Header>
-        <h2>Inventory List</h2>
+        <h2>Categories Table</h2>
         <SearchInputWrapper>
           <SearchInput
             type="text"
-            placeholder="Search inventory..."
+            placeholder="Search products..."
             onChange={handleSearch}
             value={searchTerm}
           />
@@ -152,12 +157,10 @@ const InventoryTable = ({ onDeleteClick, onEditClick }) => {
       <StyledTable>
         <thead>
           <tr>
-            <Th>Item Name</Th>
-            <Th>Item ID</Th>
+            <Th>Name</Th>
             <Th>Category</Th>
-            <Th>Cost (per unit)</Th>
-            <Th>Quantity</Th>
-            <Th>Expire Date</Th>
+            <Th style={{ textAlign: 'center' }}>Items number</Th>
+            <Th>Total Sales</Th>
             <Th>Actions</Th>
           </tr>
         </thead>
@@ -169,17 +172,28 @@ const InventoryTable = ({ onDeleteClick, onEditClick }) => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <Td>{product.name}</Td>
-              <Td>{product.itemId}</Td>
-              <Td>{product.category}</Td>
-              <Td>${product.cost.toFixed(2)}</Td>
-              <Td>{product.quantity}</Td>
-              <Td>{product.expireDate}</Td>
               <Td>
-                <ActionButton color="#818cf8" onClick={() => handleEdit(product)}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <ProductImage src={product.productimage} alt={product.name} />
+                  {product.name}
+                </div>
+              </Td>
+              <Td>{product.category}</Td>
+              <CenteredTd>{product.stock}</CenteredTd>
+              <Td>{product.sales}</Td>
+              <Td>
+                <ActionButton 
+                  color="#818cf8"
+                  onClick={() => handleModify(product)}
+                  title="Edit item"
+                >
                   <Edit size={16} />
                 </ActionButton>
-                <ActionButton color="#f87171" onClick={() => handleDelete(product)}>
+                <ActionButton 
+                  color="#f87171" 
+                  onClick={() => handleDelete(product)}
+                  title="Delete item"
+                >
                   <Trash2 size={16} />
                 </ActionButton>
               </Td>
@@ -191,4 +205,4 @@ const InventoryTable = ({ onDeleteClick, onEditClick }) => {
   );
 };
 
-export default InventoryTable;
+export default CategoryTable;

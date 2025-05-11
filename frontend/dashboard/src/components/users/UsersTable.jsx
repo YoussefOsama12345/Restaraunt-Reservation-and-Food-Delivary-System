@@ -1,15 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-
-// Sample user data
-const userData = [
-  { id: 1, name: "John Doe", email: "john@example.com", role: "Customer", status: "Active" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", role: "Admin", status: "Active" },
-  { id: 3, name: "Bob Johnson", email: "bob@example.com", role: "Customer", status: "Inactive" },
-  { id: 4, name: "Alice Brown", email: "alice@example.com", role: "Customer", status: "Active" },
-  { id: 5, name: "Charlie Wilson", email: "charlie@example.com", role: "Moderator", status: "Active" }
-];
 
 // Styled components
 const Container = styled(motion.div)`
@@ -103,23 +94,32 @@ const ActionButton = styled.button`
   }
 `;
 
-const UsersTable = () => {
+const UsersTable = ({ users, onEditClick, onDeleteClick }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredUsers, setFilteredUsers] = useState(userData);
+  const [filteredUsers, setFilteredUsers] = useState(users);
+
+  // Update filtered users when users prop changes
+  useEffect(() => {
+    setFilteredUsers(users);
+  }, [users]);
 
   // Handles user input to filter users
   const handleSearch = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-    const filtered = userData.filter((user) =>
+    const filtered = users.filter((user) =>
       user.name.toLowerCase().includes(term.toLowerCase()) ||
       user.email.toLowerCase().includes(term.toLowerCase())
     );
     setFilteredUsers(filtered);
   };
 
-  const handleDelete = (id) => {
-    setFilteredUsers(prev => prev.filter(user => user.id !== id));
+  const handleDelete = (user) => {
+    onDeleteClick(user);
+  };
+
+  const handleEdit = (user) => {
+    onEditClick(user);
   };
 
   return (
@@ -143,6 +143,7 @@ const UsersTable = () => {
           <TableHead>
             <tr>
               <Th>Name</Th>
+              <Th>User ID</Th>
               <Th>Email</Th>
               <Th>Role</Th>
               <Th>Status</Th>
@@ -163,6 +164,7 @@ const UsersTable = () => {
                     <span>{user.name}</span>
                   </div>
                 </Td>
+                <Td>{user.userId}</Td>
                 <Td>{user.email}</Td>
                 <Td>
                   <Badge bg="#1e40af" color="#dbeafe">{user.role}</Badge>
@@ -176,8 +178,8 @@ const UsersTable = () => {
                   </Badge>
                 </Td>
                 <Td>
-                  <ActionButton color="#818cf8">Edit</ActionButton>
-                  <ActionButton color="#f87171" onClick={() => handleDelete(user.id)}>Delete</ActionButton>
+                  <ActionButton color="#818cf8" onClick={() => handleEdit(user)}>Edit</ActionButton>
+                  <ActionButton color="#f87171" onClick={() => handleDelete(user)}>Delete</ActionButton>
                 </Td>
               </motion.tr>
             ))}

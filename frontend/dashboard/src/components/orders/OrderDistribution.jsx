@@ -29,7 +29,7 @@ const ChartWrapper = styled(motion.section)`
   border: 1px solid #374151;
   border-radius: 1rem;
   padding: 1.5rem;
-  width: 100%;
+  width: auto;
 `;
 
 const Title = styled.h2`
